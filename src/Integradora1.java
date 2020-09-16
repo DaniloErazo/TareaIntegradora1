@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 public class Integradora1{
+	public static Scanner sc = new Scanner(System.in);
 	static final int NEGRA = 1300000;
 	static final int BLANCA = 2600000;
 	static final int PINTURA = 980000;
@@ -11,10 +12,14 @@ public class Integradora1{
 		String material; //Input for material
 		int materialQuantity; //Input for the quantity of each material
 		String use;			//Input fot use of material 
-		Scanner sc = new Scanner(System.in);
 		Scanner sc2 = new Scanner(System.in);
 		Scanner sc3 = new Scanner(System.in);
 		int productQuantity=0; //Input of how many materials are going to be typed 
+		
+		System.out.println("Digite la cantidad total de productos a ingresar");
+		productQuantity= sc.nextInt();
+		location= typeLocation();
+		
 		String [] product= new String[productQuantity]; //Saves all the names of each material 
 		String [] usage= new String[productQuantity];	//Saves the use for each material
 		String [] placeBestPrice= new String[productQuantity];//Saves where the product is cheapest 
@@ -22,10 +27,7 @@ public class Integradora1{
 		double [] priceHC= new double[productQuantity];	//Saves all the prices in Home Center
 		double [] priceFC= new double[productQuantity];	//Saves all the prices in Ferreteria Centro
 		double [] priceFB= new double[productQuantity];	//Saves all the prices in Ferreteria Barrio
-		
-		System.out.println("Digite la cantidad total de productos a ingresar");
-		productQuantity= sc.nextInt();
-		location= typeLocation(sc);
+		double [] bestPriceAllProducts = new double[productQuantity]; 
 		
 		for (int i=0; i<productQuantity; i++){
 			System.out.println("Digite el material");
@@ -39,21 +41,35 @@ public class Integradora1{
 			quantity[i]=materialQuantity;
 		}
 		
-		typePrice(product, productQuantity, sc, priceHC, "HomeCenter");
-		typePrice(product, productQuantity, sc, priceFC, "Ferreteria del Centro");
-		typePrice(product, productQuantity, sc, priceFB, "Ferreteria del barrio");
+		typePrice(product, productQuantity, priceHC, "HomeCenter");
+		typePrice(product, productQuantity, priceFC, "Ferreteria del Centro");
+		typePrice(product, productQuantity, priceFB, "Ferreteria del barrio");
 		
-		System.out.println("El precio de todos los productos en Home Center es: " + findNetPriceAllProducts(priceHC, quantity, productQuantity));
-		System.out.println("El precio de todos los productos en Ferreteria Centro es: " + findNetPriceAllProducts(priceFC, quantity, productQuantity));
-		System.out.println("El precio de todos los productos en Ferreteria del Barrio es: " + findNetPriceAllProducts(priceFB, quantity, productQuantity));
+		System.out.println("El precio de todos los productos en cada tienda, con domicilio y mano de obra incluida es: ");
+		System.out.println("En Home Center es: ");
+		double tmp= findNetPriceAllProducts(priceHC, quantity, productQuantity);		//tmp is temporal for net price in one store 
+		double tmp2=priceTakeOutService(location, tmp);									//tmp2 is temporal for the price of takeout
+		double tmp3=labourPrice(usage);													//tmp2 is temporal for labour price
+		System.out.println(tmp+tmp2+tmp3);
+		System.out.println("En Ferreteria Centro es: ");
+		tmp= findNetPriceAllProducts(priceFC, quantity, productQuantity);
+		tmp2=priceTakeOutService(location, tmp);
+		tmp3=labourPrice(usage);
+		System.out.println(tmp+tmp2+tmp3);
+		System.out.println("En Ferreteria del Barrio es: " );
+		tmp= findNetPriceAllProducts(priceFB, quantity, productQuantity);
+		tmp2=priceTakeOutService(location, tmp);
+		tmp3=labourPrice(usage);
+		System.out.println(tmp+tmp2+tmp3);
 		
 		placeBestPrice=findPlaceBestPrice(priceHC, priceFC, priceFB, productQuantity);
 		System.out.println("El mejor lugar para comprar es: "); 
-		bestPlacetoBuyAndPrice(product, priceHC, priceFC, priceFB, placeBestPrice); 
+		bestPriceAllProducts=bestPlacetoBuyAndPrice(product, priceHC, priceFC, priceFB, placeBestPrice); 
+		System.out.println("El total de la mejor cotización es: " + findNetPriceAllProducts(bestPriceAllProducts, quantity, productQuantity));
 		System.out.println("Los productos para la obra negra son: ");
 		Arrays.stream(showProductsByUse(usage, product, "Obra negra")).forEach(System.out::println);
 	}
-	public static locationE typeLocation(Scanner sc){
+	public static locationE typeLocation(){
 		System.out.println("Digite la ubicación del inmueble(Centro: 1, Sur: 2, Norte: 3)");
 		int locationBeforeSwitch = sc.nextInt();
 		locationE location= null;
@@ -69,7 +85,61 @@ public class Integradora1{
 		}
 		return location;
 	}
-	public static double [] typePrice (String[] product, int productQuantity, Scanner sc, double[] storeArray, String storeName){
+	public static double priceTakeOutService (locationE location, double netPrice){
+		double takeOutPrice=0;
+		if(location==locationE.NORTE){
+			if(netPrice<80000){
+				takeOutPrice=120000;
+			}else if (netPrice>80000 && netPrice<300000){
+				takeOutPrice=28000;
+			}else if(netPrice>=300000){
+				takeOutPrice=0;
+			}
+		}
+		if(location==locationE.SUR){
+			if(netPrice<80000){
+				takeOutPrice=120000;
+			}else if (netPrice>80000 && netPrice<300000){
+				takeOutPrice=55000;
+			}else if(netPrice>=300000){
+				takeOutPrice=0;
+			}
+		}
+		if(location==locationE.CENTRO){
+			if(netPrice<80000){
+				takeOutPrice=50000;
+			}else{
+				takeOutPrice=0;
+			}
+		}
+		return takeOutPrice;
+	}
+	public static double labourPrice (String[] use){
+		double price=0;
+		boolean black=false;
+		boolean white=false;
+		boolean paint=false;
+		for (int i=0; i<use.length && !black; i++){
+			if(use[i].equals("Obra negra")){
+				black=true;
+				price=NEGRA;
+			}
+		}
+		for (int i=0; i<use.length && !white; i++){
+			if(use[i].equals("Obra blanca")){
+				white=true;
+				price+=BLANCA;
+			}
+		}
+		for (int i=0; i<use.length && !paint; i++){
+			if(use[i].equals("Pintura")){
+				paint=true;
+				price+=PINTURA;
+			}
+		}
+		return price;
+	}
+	public static double [] typePrice (String[] product, int productQuantity, double[] storeArray, String storeName){
 		for (int i=0; i<product.length; i++){
 			System.out.println("Digite el costo en " + storeName + " para el producto: "+ product[i]+ " por unidad");
 			double price=sc.nextDouble();
@@ -93,20 +163,27 @@ public class Integradora1{
 		}
 		return placeBestPrice;
 	}
-	public static void bestPlacetoBuyAndPrice (String[] product, double[] priceHC, double[] priceFC, double[] priceFB, String[] placeBestPrice){ 		//Prints products with their best place to buy it and the price
+	//Prints products with their best place to buy it and the price
+	public static double[] bestPlacetoBuyAndPrice (String[] product, double[] priceHC, double[] priceFC, double[] priceFB, String[] placeBestPrice){ 		
+		double [] bestPriceAllProducts = new double[product.length];
 		for (int i=0; i<product.length; i++){
 			double bestPrice=0;
 			if(placeBestPrice[i]=="Home Center"){
 				bestPrice=priceHC[i];
+				bestPriceAllProducts[i]=priceHC[i];
 			}else if (placeBestPrice[i]=="Ferreteria Centro"){
 				bestPrice=priceFC[i];
+				bestPriceAllProducts[i]=priceFC[i];
 			}else if (placeBestPrice[i]=="Ferreteria de Barrio"){
 				bestPrice=priceFB[i];
+				bestPriceAllProducts[i]=priceFB[i];
 			}
 			System.out.println(product[i] + ": " + placeBestPrice[i] + ", " + bestPrice);
 		}
+		return bestPriceAllProducts;
 	}
-	public static int findNetPriceAllProducts (double [] price, int[] quantityPerProduct, int quantityAllProducts){ //Calculates the price if all the products are bought in just one store 
+	//Calculates the price if all the products are bought in just one store
+	public static int findNetPriceAllProducts (double [] price, int[] quantityPerProduct, int quantityAllProducts){  
 		int netPrice=0;
 		double[] netPriceByProduct = new double[quantityAllProducts];
 		for(int i=0;i<price.length; i++){
@@ -117,7 +194,8 @@ public class Integradora1{
 		}
 		return netPrice;
 	}
-	public static String[] showProductsByUse (String[] use, String[] product, String typeOfUse){ //Determines all the products for what they are used (Negra, Blanca o Pintura)
+	//Determines all the products for what they are used (Negra, Blanca o Pintura)
+	public static String[] showProductsByUse (String[] use, String[] product, String typeOfUse){ 
 		ArrayList<Integer> indexUse = new ArrayList<Integer>();
 		for(int i=0;i<product.length; i++){
 			if (use[i].equals(typeOfUse)){
