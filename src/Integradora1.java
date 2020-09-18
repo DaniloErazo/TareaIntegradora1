@@ -1,11 +1,10 @@
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 public class Integradora1{
 	public static Scanner sc = new Scanner(System.in);
-	static final int NEGRA = 1300000;
-	static final int BLANCA = 2600000;
-	static final int PINTURA = 980000;
+	static final int BLACK = 1300000;
+	static final int WHITE = 2600000;
+	static final int PAINT = 980000;
 	public static void main (String [] args){
 		locationE location; //Input for the location of the property
 		String price; 	//Input with the price for each material
@@ -13,7 +12,6 @@ public class Integradora1{
 		int materialQuantity; //Input for the quantity of each material
 		String use;			//Input fot use of material 
 		Scanner sc2 = new Scanner(System.in);
-		Scanner sc3 = new Scanner(System.in);
 		int productQuantity=0; //Input of how many materials are going to be typed 
 		
 		System.out.println("Digite la cantidad total de productos a ingresar");
@@ -27,7 +25,6 @@ public class Integradora1{
 		double [] priceHC= new double[productQuantity];	//Saves all the prices in Home Center
 		double [] priceFC= new double[productQuantity];	//Saves all the prices in Ferreteria Centro
 		double [] priceFB= new double[productQuantity];	//Saves all the prices in Ferreteria Barrio
-		double [] bestPriceAllProducts = new double[productQuantity]; 
 		
 		for (int i=0; i<productQuantity; i++){
 			System.out.println("Digite el material");
@@ -41,9 +38,9 @@ public class Integradora1{
 			quantity[i]=materialQuantity;
 		}
 		
-		typePrice(product, productQuantity, priceHC, "HomeCenter");
-		typePrice(product, productQuantity, priceFC, "Ferreteria del Centro");
-		typePrice(product, productQuantity, priceFB, "Ferreteria del barrio");
+		getPrice(product, priceHC, "HomeCenter");
+		getPrice(product, priceFC, "Ferreteria del Centro");
+		getPrice(product, priceFB, "Ferreteria del barrio");
 		
 		System.out.println("El precio de todos los productos en cada tienda, con domicilio y mano de obra incluida es: ");
 		System.out.println("En Home Center es: ");
@@ -64,11 +61,21 @@ public class Integradora1{
 		
 		placeBestPrice=findPlaceBestPrice(priceHC, priceFC, priceFB, productQuantity);
 		System.out.println("El mejor lugar para comprar es: "); 
-		bestPriceAllProducts=bestPlacetoBuyAndPrice(product, priceHC, priceFC, priceFB, placeBestPrice); 
-		System.out.println("El total de la mejor cotización es: " + findNetPriceAllProducts(bestPriceAllProducts, quantity, productQuantity));
+		double [] bestPriceAllProductstmp=bestPlacetoBuyAndPrice(product, priceHC, priceFC, priceFB, placeBestPrice); 
+		System.out.println("El total de la mejor cotización (domicilio y mano de obra incluida) es: "); 
+		tmp=findNetPriceAllProducts(bestPriceAllProductstmp, quantity, productQuantity);
+		tmp2=priceTakeOutService(location, tmp);
+		tmp3=labourPrice(usage);
+		System.out.println(tmp+tmp2+tmp3);
 		System.out.println("Los productos para la obra negra son: ");
-		Arrays.stream(showProductsByUse(usage, product, "Obra negra")).forEach(System.out::println);
+		printArray(clasiffyProductsByUse(usage, product, "Obra negra"));
 	}
+	/**
+	* typeLocation is a method that asks the user where the property is located <br>
+	* <b> pre: </b>
+	* <b> pos: </b> location chosen from locationE
+	* @return location 
+	*/
 	public static locationE typeLocation(){
 		System.out.println("Digite la ubicación del inmueble(Centro: 1, Sur: 2, Norte: 3)");
 		int locationBeforeSwitch = sc.nextInt();
@@ -85,6 +92,14 @@ public class Integradora1{
 		}
 		return location;
 	}
+	/**
+	* priceTakeOutService calculates the price for delivery  <br>
+	* <b> pre: </b> location is defined. netPrice &gt; 0 <br>
+	* <b> pos: </b> 
+	* @param location where is the property 
+	* @param netPrice total price for the bill 
+	* @return takeOutPrice how much the delivery costs taken into account location and full bill 
+	*/
 	public static double priceTakeOutService (locationE location, double netPrice){
 		double takeOutPrice=0;
 		if(location==locationE.NORTE){
@@ -114,6 +129,13 @@ public class Integradora1{
 		}
 		return takeOutPrice;
 	}
+	/**
+	* labourPrice calculates the price for labour work checking which of the three have to be charged    <br>
+	* <b> pre: </b> use is defined, initialized and filled  <br>
+	* <b> pos: </b> 
+	* @param use contains the usage for every product that has been inputted 
+	* @return price how much labour work costs taken 
+	*/
 	public static double labourPrice (String[] use){
 		double price=0;
 		boolean black=false;
@@ -122,24 +144,33 @@ public class Integradora1{
 		for (int i=0; i<use.length && !black; i++){
 			if(use[i].equals("Obra negra")){
 				black=true;
-				price=NEGRA;
+				price=BLACK;
 			}
 		}
 		for (int i=0; i<use.length && !white; i++){
 			if(use[i].equals("Obra blanca")){
 				white=true;
-				price+=BLANCA;
+				price+=WHITE;
 			}
 		}
 		for (int i=0; i<use.length && !paint; i++){
 			if(use[i].equals("Pintura")){
 				paint=true;
-				price+=PINTURA;
+				price+=PAINT;
 			}
 		}
 		return price;
 	}
-	public static double [] typePrice (String[] product, int productQuantity, double[] storeArray, String storeName){
+	/**
+	* getPrice asks the user the price for all the products in one store and saves it in an array   <br>
+	* <b> pre: </b> product is defined, initialized and filled. storeArray is defined and initialized. storeName corresponds to one of the three stores  <br>
+	* <b> pos: </b> 
+	* @param product is the list of the products inputted by the user
+	* @param storeArray is where the prices are being saved, there's one for each store
+	* @param storeName is the name of the store whose prices are being asked 
+	* @return storeArray which contains the price for each product in a specific store 
+	*/
+	public static double [] getPrice (String[] product, double[] storeArray, String storeName){
 		for (int i=0; i<product.length; i++){
 			System.out.println("Digite el costo en " + storeName + " para el producto: "+ product[i]+ " por unidad");
 			double price=sc.nextDouble();
@@ -147,7 +178,16 @@ public class Integradora1{
 		}
 		return storeArray;
 	}
-	//Determines which store has the cheapest price for each product and saves it in an array 
+	/**
+	* findPlaceBestPrice determines which store has the cheapest price for each product and saves it in an array  <br>
+	* <b> pre: </b> priceHC, priceFC and priceFB are defined, initialized and filled. productQuantity &gt; 0   <br>
+	* <b> pos: </b> 
+	* @param priceHC contains the price for all the products in HomeCenter
+	* @param priceFC contains the price for all the products in Ferreteria del Centro
+	* @param priceFB contains the price for all the products in Ferreteria del Barrio
+	* @param productQuantity amount of inputted products 
+	* @return placeBestPrice which contains the place where each product is cheaper
+	*/
 	public static String[] findPlaceBestPrice (double[] priceHC, double[] priceFC, double[] priceFB, int productQuantity){
 		String [] placeBestPrice= new String[productQuantity];
 		for (int i=0; i<priceHC.length; i++){ 
@@ -163,7 +203,17 @@ public class Integradora1{
 		}
 		return placeBestPrice;
 	}
-	//Prints products with their best place to buy it and the price
+	/**
+	* bestPlacetoBuyAndPrice prints products with their best place to buy it and the price. And saves the price (lowest) in an array <br>
+	* <b> pre: </b> product, priceHC, priceFC and priceFB, placeBestPrice are defined, initialized and filled. <br>
+	* <b> pos: </b> 
+	* @param product contains the name of all the products asked to the user 
+	* @param priceHC contains the price for all the products in HomeCenter
+	* @param priceFC contains the price for all the products in Ferreteria del Centro
+	* @param priceFB contains the price for all the products in Ferreteria del Barrio
+	* @param placeBestPrice contains the store where each product has the lowest cost 
+	* @return bestPriceAllProducts which contains the cheapest price found for every product
+	*/
 	public static double[] bestPlacetoBuyAndPrice (String[] product, double[] priceHC, double[] priceFC, double[] priceFB, String[] placeBestPrice){ 		
 		double [] bestPriceAllProducts = new double[product.length];
 		for (int i=0; i<product.length; i++){
@@ -182,7 +232,15 @@ public class Integradora1{
 		}
 		return bestPriceAllProducts;
 	}
-	//Calculates the price if all the products are bought in just one store
+	/**
+	* findNetPriceAllProducts calculates the price for all the products if unit price and quantity are given <br>
+	* <b> pre: </b> price and quantityPerProduct are defined, initialized and filled. quantityAllProducts &gt; 0 <br>
+	* <b> pos: </b> 
+	* @param price contains the name of all the products asked to the user 
+	* @param quantityPerProduct contains the quantity inputted for each product
+	* @param quantityAllProducts amount of inputted products  
+	* @return netPrice is the full bill 
+	*/
 	public static int findNetPriceAllProducts (double [] price, int[] quantityPerProduct, int quantityAllProducts){  
 		int netPrice=0;
 		double[] netPriceByProduct = new double[quantityAllProducts];
@@ -194,18 +252,43 @@ public class Integradora1{
 		}
 		return netPrice;
 	}
-	//Determines all the products for what they are used (Negra, Blanca o Pintura)
-	public static String[] showProductsByUse (String[] use, String[] product, String typeOfUse){ 
-		ArrayList<Integer> indexUse = new ArrayList<Integer>();
+	/**
+	* clasiffyProductsByUse sorts products by the type of use given (Obra negra, Blanca o Pintura) and save it in an array<br>
+	* <b> pre: </b> use, product and typeOfUse are defined, initialized and filled.<br>
+	* <b> pos: </b> 
+	* @param use contains the use for each product 
+	* @param product contains the name of all the products inputted
+	* @param typeOfUse contains the type of use in the building for each product 
+	* @return listOFProductsByUse contains the products used for the given use 
+	*/
+	public static String[] clasiffyProductsByUse (String[] use, String[] product, String typeOfUse){ 
+		int count=0;
 		for(int i=0;i<product.length; i++){
-			if (use[i].equals(typeOfUse)){
-				indexUse.add(i);
+			if(use[i].equals(typeOfUse)){
+				count+=1;
 			}
 		}
-		String[] listOFProductsByUse = new String[indexUse.size()];
+		int[] indexUse = new int[count];
+		for(int i=0;i<product.length; i++){
+			if (use[i].equals(typeOfUse)){
+				indexUse[i]=i;
+			}
+		}
+		String[] listOFProductsByUse = new String[indexUse.length];
 		for (int i=0; i<listOFProductsByUse.length; i++){
-			listOFProductsByUse[i]=product[indexUse.get(i)];
+			listOFProductsByUse[i]=product[indexUse[i]];
 		}
 		return listOFProductsByUse;
+	}
+	/**
+	* printArray prints the given array <br>
+	* <b> pre: </b> array is defined, initialized and filled.<br>
+	* <b> pos: </b> 
+	* @param array is the one that is going to be printed  
+	*/
+	public static void printArray (String[] array){
+		for (int i=0; i< array.length; i++){
+			System.out.println(array[i]);
+		}
 	}
 }
