@@ -6,15 +6,15 @@ public class Integradora1{
 	static final int WHITE = 2600000;
 	static final int PAINT = 980000;
 	public static void main (String [] args){
-		locationE location; 				//Input for the location of the property
+		LocationE location; 				//Input for the location of the property
 		String price; 						//Input with the price for each material
 		String material; 					//Input for material
 		int materialQuantity; 				//Input for the quantity of each material
-		String use;							//Input fot use of material 
+		int use;							//Input for use of material 
 		int productQuantity=0; 				//Input of how many materials are going to be typed 
 		double fullBill=0; 					//Output for the total bill in one store or for the best quote
 		double deliveryPrice=0; 			//Output for the price of takeout service
-		double labourPriceV=0; 				//Output for the price of labour work 
+		double labourPriceV=0; 				//Output for the price of workforce
 		int option;							//Input for the selected option in the menu
 		
 		System.out.println("Digite la cantidad total de productos a ingresar");
@@ -22,7 +22,7 @@ public class Integradora1{
 		location= typeLocation();
 		
 		String [] product= new String[productQuantity]; //Saves all the names of each material 
-		String [] usage= new String[productQuantity];	//Saves the use for each material
+		int [] usage= new int[productQuantity];	//Saves the use for each material
 		int [] quantity= new int[productQuantity];		//Saves the quantity of each material
 		double [] priceHC= new double[productQuantity];	//Saves all the prices in Home Center
 		double [] priceFC= new double[productQuantity];	//Saves all the prices in Ferreteria Centro
@@ -36,8 +36,8 @@ public class Integradora1{
 			material=sc.next();
 			System.out.println("Digite la cantidad");
 			materialQuantity=sc.nextInt();
-			System.out.println("Digite el uso (Obra negra, blanca o pintura)");
-			use=sc2.nextLine();
+			System.out.println("Digite el uso (1 para Obra negra, 2 para Obra blanca o 3 para pintura)");
+			use=sc2.nextInt();
 			product[i]=material;
 			usage[i]=use;
 			quantity[i]=materialQuantity;
@@ -101,17 +101,17 @@ public class Integradora1{
 				}
 				case 6:{
 					System.out.println("Los productos para la obra negra son: ");														
-					printArray(clasiffyProductsByUse(usage, product, "Obra negra"));
+					printArray(clasiffyProductsByUse(usage, product, 1));
 					break;
 				}
 				case 7:{
 					System.out.println("Los productos para la obra blanca son: ");														
-					printArray(clasiffyProductsByUse(usage, product, "Obra blanca"));
+					printArray(clasiffyProductsByUse(usage, product, 2));
 					break;
 				}
 				case 8:{
 					System.out.println("Los productos para la pintura son: ");														
-					printArray(clasiffyProductsByUse(usage, product, "Pintura"));
+					printArray(clasiffyProductsByUse(usage, product, 3));
 					break;
 				}
 				default:
@@ -122,22 +122,22 @@ public class Integradora1{
 	/**
 	* typeLocation is a method that asks the user where the property is located <br>
 	* <b> pre: </b> the value inputted by user is either 1 or 2 or 3<br>
-	* <b> pos: </b> location chosen from locationE
+	* <b> pos: </b> location chosen from LocationE
 	* @return location 
 	*/
-	public static locationE typeLocation(){
+	public static LocationE typeLocation(){
 		System.out.println("Digite la ubicación del inmueble(Centro: 1, Sur: 2, Norte: 3)");
 		int locationBeforeSwitch = sc.nextInt();
-		locationE location= null;
+		LocationE location= null;
 		switch(locationBeforeSwitch){
 			case 1:
-				location = locationE.CENTRO;
+				location = LocationE.CENTRO;
 				break;
 			case 2:
-				location = locationE.SUR;
+				location = LocationE.SUR;
 				break;
 			case 3:
-				location = locationE.NORTE;
+				location = LocationE.NORTE;
 		}
 		return location;
 	}
@@ -145,13 +145,13 @@ public class Integradora1{
 	* priceTakeOutService calculates the price for delivery  <br>
 	* <b> pre: </b> location is defined.  <br>
 	* <b> pos: </b> 
-	* @param location where is the property 
+	* @param location where the property is
 	* @param netPrice total price for the bill. netPrice &gt; 0 
-	* @return takeOutPrice how much the delivery costs taken into account location and full bill 
+	* @return takeOutPrice full price of delivery taken into account location and full bill 
 	*/
-	public static double priceTakeOutService (locationE location, double netPrice){
+	public static double priceTakeOutService (LocationE location, double netPrice){
 		double takeOutPrice=0;
-		if(location==locationE.NORTE){
+		if(location==LocationE.NORTE){
 			if(netPrice<80000){
 				takeOutPrice=120000;
 			}else if (netPrice>80000 && netPrice<300000){
@@ -160,7 +160,7 @@ public class Integradora1{
 				takeOutPrice=0;
 			}
 		}
-		if(location==locationE.SUR){
+		if(location==LocationE.SUR){
 			if(netPrice<80000){
 				takeOutPrice=120000;
 			}else if (netPrice>80000 && netPrice<300000){
@@ -169,7 +169,7 @@ public class Integradora1{
 				takeOutPrice=0;
 			}
 		}
-		if(location==locationE.CENTRO){
+		if(location==LocationE.CENTRO){
 			if(netPrice<80000){
 				takeOutPrice=50000;
 			}else{
@@ -179,31 +179,31 @@ public class Integradora1{
 		return takeOutPrice;
 	}
 	/**
-	* labourPrice calculates the price for labour work checking which of the three have to be charged    <br>
+	* labourPrice calculates the price for workforce, checking which of the three types have to be charged    <br>
 	* <b> pre: </b> use is defined, initialized and filled  <br>
 	* <b> pos: </b> 
 	* @param use contains the usage for every product that has been inputted 
-	* @return price how much labour work costs taken 
+	* @return price full price of workforce 
 	*/
-	public static double labourPrice (String[] use){
+	public static double labourPrice (int[] use){
 		double price=0;
 		boolean black=false;
 		boolean white=false;
 		boolean paint=false;
 		for (int i=0; i<use.length && !black; i++){
-			if(use[i].equals("Obra negra")){
+			if(use[i]==1){
 				black=true;
 				price=BLACK;
 			}
 		}
 		for (int i=0; i<use.length && !white; i++){
-			if(use[i].equals("Obra blanca")){
+			if(use[i]==2){
 				white=true;
 				price+=WHITE;
 			}
 		}
 		for (int i=0; i<use.length && !paint; i++){
-			if(use[i].equals("Pintura")){
+			if(use[i]==3){
 				paint=true;
 				price+=PAINT;
 			}
@@ -253,7 +253,7 @@ public class Integradora1{
 		return placeBestPrice;
 	}
 	/**
-	* bestPlacetoBuyAndPrice prints products with their best place to buy it and the price. And saves the price (lowest) in an array <br>
+	* bestPlacetoBuyAndPrice prints products with their best place to buy them and the price. And saves the price (lowest) in an array <br>
 	* <b> pre: </b> product, priceHC, priceFC and priceFB, placeBestPrice are defined, initialized and filled. <br>
 	* <b> pos: </b> bestPriceAllProducts is completely filled <br> 
 	* @param product contains the name of all the products asked to the user 
@@ -288,10 +288,10 @@ public class Integradora1{
 	* @param price contains the name of all the products asked to the user 
 	* @param quantityPerProduct contains the quantity inputted for each product
 	* @param quantityAllProducts amount of inputted products. quantityAllProducts &gt; 0 
-	* @return netPrice is the full bill 
+	* @return netPrice is the full bill for the given prices
 	*/
-	public static int findNetPriceAllProducts (double [] price, int[] quantityPerProduct, int quantityAllProducts){  
-		int netPrice=0;
+	public static double findNetPriceAllProducts (double [] price, int[] quantityPerProduct, int quantityAllProducts){  
+		double netPrice=0;
 		double[] netPriceByProduct = new double[quantityAllProducts];
 		for(int i=0;i<price.length; i++){
 			netPriceByProduct[i]=price[i]*quantityPerProduct[i];
@@ -302,25 +302,25 @@ public class Integradora1{
 		return netPrice;
 	}
 	/**
-	* clasiffyProductsByUse sorts products by the type of use given (Obra negra, Blanca o Pintura) and save it in an array<br>
+	* clasiffyProductsByUse sorts products by the type of use (Obra negra, Blanca o Pintura) and saves it in an array<br>
 	* <b> pre: </b> use, product and typeOfUse are defined, initialized and filled.<br>
 	* <b> pos: </b> 
 	* @param use contains the use for each product 
 	* @param product contains the name of all the products inputted
-	* @param typeOfUse contains the type of use in the building for each product. It's one of: "Obra negra", "Obra blanca", "Pintura" 
+	* @param typeOfUse contains the type of use in the building for each product. It can be 1(Obra negra), 2(Obra blanca) or 3 (Pintura) 
 	* @return listOFProductsByUse contains the products used for the given use 
 	*/
-	public static String[] clasiffyProductsByUse (String[] use, String[] product, String typeOfUse){ 
+	public static String[] clasiffyProductsByUse (int[] use, String[] product, int typeOfUse){ 
 		int count=0;
 		for(int i=0;i<product.length; i++){
-			if(use[i].equals(typeOfUse)){
+			if(use[i]==typeOfUse){
 				count+=1;
 			}
 		}
 		int[] indexUse = new int[count];
 		int indexUsecount=0;
 		for(int i=0;i<product.length; i++){
-			if (use[i].equals(typeOfUse)){
+			if (use[i]==typeOfUse){
 				indexUse[indexUsecount]=i;
 				indexUsecount+=1;
 			}
